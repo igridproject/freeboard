@@ -10,7 +10,9 @@
     <link href="css/freeboard.min.css" rel="stylesheet" />
     <script src="js/freeboard.thirdparty.min.js"></script>
     <script type="text/javascript">
+		var bsurl = 'http://phayao.bs.igridproject.info/api/object/bigstream.freeboard';
         head.js("js/freeboard_plugins.min.js",
+		"plugins/mqtt/paho.mqtt.plugin.js",
                 // *** Load more plugins here ***
                 function(){
                     $(function()
@@ -18,13 +20,22 @@
                         freeboard.initialize(true);
 
                         var hashpattern = window.location.hash.match(/(&|#)source=([^&]+)/);
-                        if (hashpattern !== null) {
+						var tagpattern = window.location.hash.match(/(&|#)tag=([^&]+)/);
+                        if (tagpattern !== null) {
+							var fb = bsurl + '${' + tagpattern[2] + '}/data';
+                            $.getJSON(fb, function(data) {
+                                freeboard.loadDashboard(data, function() {
+                                    freeboard.setEditing(false);
+                                });
+                            });
+                        }else if (hashpattern !== null) {
                             $.getJSON(hashpattern[2], function(data) {
                                 freeboard.loadDashboard(data, function() {
                                     freeboard.setEditing(false);
                                 });
                             });
                         }
+						
 
                     });
                 });
