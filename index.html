@@ -10,7 +10,9 @@
     <link href="css/freeboard.min.css" rel="stylesheet" />
     <script src="js/freeboard.thirdparty.min.js"></script>
     <script type="text/javascript">
-		var bsurl = 'http://master.bs.igridproject.info/api/object/bigstream.freeboard';
+
+        var bsurl = 'https://master.bs.igridproject.info/api/object/bigstream.freeboard';
+        
         head.js("js/freeboard_plugins.min.js",
         "plugins/mqtt/paho.mqtt.plugin.js",
         "plugins/mqtt/bsspeak.mqtt.plugin.js",
@@ -26,9 +28,9 @@
                         freeboard.initialize(true);
 
                         var hashpattern = window.location.hash.match(/(&|#)source=([^&]+)/);
-						var tagpattern = window.location.hash.match(/(&|#)tag=([^&]+)/);
-                        if (tagpattern !== null) {
-							var fb = bsurl + '${' + tagpattern[2] + '}/data';
+						var namepattern = window.location.search.match(/(&|\?)n=([^&]+)/);
+                        if (namepattern !== null) {
+							var fb = bsurl + '${' + namepattern[2] + '}/data';
                             $.getJSON(fb, function(data) {
                                 freeboard.loadDashboard(data, function() {
                                     freeboard.setEditing(false);
