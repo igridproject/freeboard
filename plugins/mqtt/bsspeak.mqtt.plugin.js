@@ -6,78 +6,28 @@
 	// Please replace the external_scripts location with a local replica of the Paho MQTT client when possible
 	// -------------------
 	freeboard.loadDatasourcePlugin({
-		"type_name"   : "paho_mqtt",
-		"display_name": "Paho MQTT",
-        "description" : "Receive data from an MQTT server.",
+		"type_name"   : "bsspeak_mqtt",
+		"display_name": "BSSpeak over MQTT",
+        "description" : "Receive data from BigStream Messaging",
 		"external_scripts" : [
 			"plugins/mqtt/paho-mqtt-min.js"
 		],
 		"settings"    : [
 			{
 				"name"         : "server",
-				"display_name" : "MQTT Server",
+				"display_name" : "BS-MQTT Server",
 				"type"         : "text",
-				"description"  : "Hostname for your MQTT Server",
+				"description"  : "Hostname for BigStream MQTT Server",
                 "required" : true,
 				"default_value": "msg.bs.igridproject.info"
 			},
-			{
-				"name"        : "port",
-				"display_name": "Port",
-				"type"        : "number", 
-				"description" : "The port to connect to the MQTT Server on",
-				"required"    : true,
-				"default_value": 443
-			},
-			{
-				"name"        : "use_ssl",
-				"display_name": "Use SSL",
-				"type"        : "boolean",
-				"description" : "Use SSL/TLS to connect to the MQTT Server",
-				"default_value": true
-			},
-			{
-				"name"        : "path",
-				"display_name": "Path",
-				"type"        : "text", 
-				"description" : "MQTT Path",
-				"required"    : false,
-				"default_value": "/ws"
-			},
-            {
-            	"name"        : "client_id",
-            	"display_name": "Client Id",
-            	"type"        : "text",
-            	"default_value": "",
-            	"required"    : false
-            },
-            {
-            	"name"        : "username",
-            	"display_name": "Username",
-            	"type"        : "text",
-            	"default_value": "",
-            	"required"    : false
-            },
-            {
-            	"name"        : "password",
-            	"display_name": "Password",
-            	"type"        : "text",
-            	"default_value": "",
-            	"required"    : false
-            },
             {
             	"name"        : "topic",
             	"display_name": "Topic",
             	"type"        : "text",
             	"description" : "The topic to subscribe to",
-            	"required"    : true
-            },
-            {
-            	"name"        : "json_data",
-            	"display_name": "JSON messages?",
-            	"type"        : "boolean",
-            	"description" : "If the messages on your topic are in JSON format they will be parsed so the individual fields can be used in freeboard widgets",
-            	"default_value": false
+				"required"    : true,
+				"default_value": "/bsspeak/job/#"
             }
 		],
 		// **newInstance(settings, newInstanceCallback, updateCallback)** (required) : A function that will be called when a new instance of this plugin is requested.
@@ -106,19 +56,13 @@
 			if (responseObject.errorCode !== 0)
 				console.log("onConnectionLost:"+responseObject.errorMessage);
 
-				client.connect({onSuccess:onConnect,
-					userName: currentSettings.username,
-					password: currentSettings.password,
-					useSSL: currentSettings.use_ssl});
+			client.connect({onSuccess:onConnect,useSSL: true});
 		};
 
 		function onMessageArrived(message) {
 			data.topic = message.destinationName;
-			if (currentSettings.json_data) {
-				data.msg = JSON.parse(message.payloadString);
-			} else {
-				data.msg = message.payloadString;
-			}
+			data.msg = JSON.parse(message.payloadString);
+
 			updateCallback(data);
 		};
 
@@ -129,9 +73,7 @@
 			data = {};
 			currentSettings = newSettings;
 			client.connect({onSuccess:onConnect,
-				userName: currentSettings.username,
-				password: currentSettings.password,
-				useSSL: currentSettings.use_ssl});
+							useSSL: true});
 		}
 
 		// **updateNow()** (required) : A public function we must implement that will be called when the user wants to manually refresh the datasource
@@ -150,12 +92,14 @@
 			client = {};
 		}
 
-		var client = new Paho.MQTT.Client(currentSettings.server,currentSettings.port,currentSettings.path,currentSettings.client_id);
+		//var client = new Paho.MQTT.Client(currentSettings.server,currentSettings.port,"/ws",currentSettings.client_id);
+		var client = new Paho.MQTT.Client("msg.bs.igridproject.info", 443, "/ws","bs_clientid_" + parseInt(Math.random() * 100000, 10));
 		client.onConnectionLost = onConnectionLost;
 		client.onMessageArrived = onMessageArrived;
-		client.connect({onSuccess:onConnect,
-			userName: currentSettings.username,
-			password: currentSettings.password,
-			useSSL: currentSettings.use_ssl});
+		client.connect({onSuccess:onConnect, 
+    onFailure: function (message) {
+        console.log("CONNECTION FAILURE - " + message.errorMessage);
+    },
+						useSSL: true});
 	}
 }());
