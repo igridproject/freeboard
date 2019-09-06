@@ -28,7 +28,7 @@
                         freeboard.initialize(true);
 
                         var hashpattern = window.location.hash.match(/(&|#)source=([^&]+)/);
-						var namepattern = window.location.search.match(/(&|\?)n=([^&]+)/);
+						var namepattern = window.location.hash.match(/(&|#)tag=([^&]+)/);
                         if (namepattern !== null) {
 							var fb = bsurl + '${' + namepattern[2] + '}/data';
                             $.getJSON(fb, function(data) {
